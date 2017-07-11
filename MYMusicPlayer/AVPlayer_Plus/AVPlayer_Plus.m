@@ -7,7 +7,6 @@
 //
 
 #import "AVPlayer_Plus.h"
-#import <MediaPlayer/MediaPlayer.h>
 
 @interface AVPlayer_Plus ()
 
@@ -57,8 +56,6 @@
                     [weakSelf.delegate player:weakSelf playerIsPlaying:current restTime:rest progress:progress];
                 }
             }
-            
-            [weakSelf updateLockedScreenMusic];
         }];
     }
     return self;
@@ -257,30 +254,6 @@
         NSAssert(1 < 0, @"warm：注意，后台任务没有开启！！！\n请在info.plist文件中添加Required background modes数组，新增一项App plays audio or streams audio/video using AirPlay字符串");
         return;
     }
-}
-
-- (void)updateLockedScreenMusic{
-    //TODO: 屏时候的音乐信息更新，建议1秒更新一次
-    // 播放信息中心
-    MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
-    
-    // 初始化播放信息
-    NSMutableDictionary *info = [NSMutableDictionary dictionary];
-    // 专辑名称
-    info[MPMediaItemPropertyAlbumTitle] = @"啊啊啊";
-    // 歌手
-    info[MPMediaItemPropertyArtist] = @"哈哈哈";
-    // 歌曲名称
-    info[MPMediaItemPropertyTitle] = @"呵呵呵";
-    // 设置图片
-    info[MPMediaItemPropertyArtwork] = [[MPMediaItemArtwork alloc] initWithImage:[UIImage imageNamed:@"Icon-58"]];
-    // 设置持续时间（歌曲的总时间）
-    [info setObject:[NSNumber numberWithFloat:CMTimeGetSeconds([self.currentItem duration])] forKey:MPMediaItemPropertyPlaybackDuration];
-    // 设置当前播放进度
-    [info setObject:[NSNumber numberWithFloat:CMTimeGetSeconds([self.currentItem currentTime])] forKey:MPNowPlayingInfoPropertyElapsedPlaybackTime];
-    
-    // 切换播放信息
-    center.nowPlayingInfo = info;
 }
 
 @end

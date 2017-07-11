@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import "AVPlayer_Plus.h"
+#import <MediaPlayer/MediaPlayer.h>
 
 @interface ViewController ()<AVPlayer_PlusDelegate>
 
@@ -37,49 +38,6 @@
     // Do any additional setup after loading the view, typically from a nib.
 }
 
--(void)routeChange:(NSNotification *)notification{
-    //TODO: 接收音频源改变监听事件，比如更换了输出源，由耳机播放拔掉耳机后，应该把音乐暂停(参照酷狗应用)
-    NSDictionary *dic=notification.userInfo;
-    int changeReason= [dic[AVAudioSessionRouteChangeReasonKey] intValue];
-    //等于AVAudioSessionRouteChangeReasonOldDeviceUnavailable表示旧输出不可用
-    if (changeReason==AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
-        AVAudioSessionRouteDescription *routeDescription=dic[AVAudioSessionRouteChangePreviousRouteKey];
-        AVAudioSessionPortDescription *portDescription= [routeDescription.outputs firstObject];
-        //原设备为耳机说明由耳机拔出来了，则暂停
-        if ([portDescription.portType isEqualToString:@"Headphones"]) {
-            [self.player pause];
-        }
-    }
-}
-
-- (void)remoteControlReceivedWithEvent:(UIEvent *)receivedEvent {
-    //TODO: 响应远程音乐播放控制消息
-    if (receivedEvent.type == UIEventTypeRemoteControl) {
-        switch (receivedEvent.subtype) {
-            case UIEventSubtypeRemoteControlTogglePlayPause:{
-                [self.player pause];
-            }
-                break;
-            case UIEventSubtypeRemoteControlNextTrack:
-                [self.player turnNext];
-                break;
-            case UIEventSubtypeRemoteControlPreviousTrack:
-                [self.player turnLast];
-                break;
-            case UIEventSubtypeRemoteControlPause:{
-                [self.player pause];
-            }
-                break;
-            case UIEventSubtypeRemoteControlPlay:{
-                [self.player play];
-            }
-                break;
-            default:
-                break;
-        }
-    }
-}
-
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
@@ -103,6 +61,7 @@
 - (void)player:(AVPlayer_Plus *)player playerIsPlaying:(NSTimeInterval)currentTime restTime:(NSTimeInterval)restTime progress:(CGFloat)progress{
     //TODO: 获取当前播放进度
     NSLog(@"当前播放时间:%.0f\n剩余播放时间:%.0f\n当前播放进度:%.2f\n总时长为:%.0f", currentTime, restTime, progress, player.duration);
+    [self updateLockedScreenMusic];//更新锁屏音乐信息
 }
 
 #pragma mark - 事件处理
@@ -151,6 +110,75 @@
             break;
     }
 }
+
+- (void)updateLockedScreenMusic{
+    //TODO: 屏时候的音乐信息更新，建议1秒更新一次
+    // 播放信息中心
+    MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
+    
+    // 初始化播放信息
+    NSMutableDictionary *info = [NSMutableDictionary dictionary];
+    // 专辑名称
+    info[MPMediaItemPropertyAlbumTitle] = @"啊啊啊";
+    // 歌手
+    info[MPMediaItemPropertyArtist] = @"哈哈哈";
+    // 歌曲名称
+    info[MPMediaItemPropertyTitle] = @"呵呵呵";
+    // 设置图片
+    info[MPMediaItemPropertyArtwork] = [[MPMediaItemArtwork alloc] initWithImage:[UIImage imageNamed:@"Icon-58"]];
+    // 设置持续时间（歌曲的总时间）
+    [info setObject:[NSNumber numberWithFloat:CMTimeGetSeconds([self.player.currentItem duration])] forKey:MPMediaItemPropertyPlaybackDuration];
+    // 设置当前播放进度
+    [info setObject:[NSNumber numberWithFloat:CMTimeGetSeconds([self.player.currentItem currentTime])] forKey:MPNowPlayingInfoPropertyElapsedPlaybackTime];
+    
+    // 切换播放信息
+    center.nowPlayingInfo = info;
+}
+
+-(void)routeChange:(NSNotification *)notification{
+    //TODO: 接收音频源改变监听事件，比如更换了输出源，由耳机播放拔掉耳机后，应该把音乐暂停(参照酷狗应用)
+    NSDictionary *dic=notification.userInfo;
+    int changeReason= [dic[AVAudioSessionRouteChangeReasonKey] intValue];
+    //等于AVAudioSessionRouteChangeReasonOldDeviceUnavailable表示旧输出不可用
+    if (changeReason==AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
+        AVAudioSessionRouteDescription *routeDescription=dic[AVAudioSessionRouteChangePreviousRouteKey];
+        AVAudioSessionPortDescription *portDescription= [routeDescription.outputs firstObject];
+        //原设备为耳机说明由耳机拔出来了，则暂停
+        if ([portDescription.portType isEqualToString:@"Headphones"]) {
+            [self.player pause];
+        }
+    }
+}
+
+- (void)remoteControlReceivedWithEvent:(UIEvent *)receivedEvent {
+    //TODO: 响应远程音乐播放控制消息
+    if (receivedEvent.type == UIEventTypeRemoteControl) {
+        switch (receivedEvent.subtype) {
+            case UIEventSubtypeRemoteControlTogglePlayPause:{
+                [self.player pause];
+            }
+                break;
+            case UIEventSubtypeRemoteControlNextTrack:
+                [self.player turnNext];
+                break;
+            case UIEventSubtypeRemoteControlPreviousTrack:
+                [self.player turnLast];
+                break;
+            case UIEventSubtypeRemoteControlPause:{
+                [self.player pause];
+            }
+                break;
+            case UIEventSubtypeRemoteControlPlay:{
+                [self.player play];
+            }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+
 
 
 
