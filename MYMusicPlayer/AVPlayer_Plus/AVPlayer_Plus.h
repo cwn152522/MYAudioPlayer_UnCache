@@ -84,6 +84,7 @@ typedef NS_ENUM(NSInteger, AVPlayerPlayMode) {
  监听播放器播放状态改变
 
  @param isPlaying 是否正在播放
+ @note 应用场景：改变播放按钮的状态
  */
 - (void)player:(AVPlayer_Plus *)player playingSateDidChanged:(BOOL)isPlaying;
 
