@@ -10,11 +10,6 @@
 
 @interface AVPlayer_Plus ()
 
-/**
- 添加一个后台任务 唯一标识，用于控制后台播放
- */
-@property (assign, nonatomic) UIBackgroundTaskIdentifier bgTaskId;
-
 @end
 
 @implementation AVPlayer_Plus

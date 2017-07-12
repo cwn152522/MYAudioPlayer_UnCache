@@ -112,7 +112,8 @@
 }
 
 - (void)updateLockedScreenMusic{
-    //TODO: 屏时候的音乐信息更新，建议1秒更新一次
+    //TODO: 锁屏时候的音乐信息更新，建议1秒更新一次
+    NSLog(@"当前播放的是第%ld首歌", self.player.currentIndex);//获取当前播放的歌曲，然后，取model数据，填充播放信息中心内容
     // 播放信息中心
     MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
     
