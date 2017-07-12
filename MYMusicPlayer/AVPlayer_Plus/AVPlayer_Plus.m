@@ -33,6 +33,9 @@
         //监听音乐播放结束，播放下一首
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(musicPlayDidAutoFinished) name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
         
+        //监听音乐被打断，继续播放
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioSessionInterrupted:) name:AVAudioSessionInterruptionNotification object:nil];
+        
         //增加观测者,播放状态切换时处理
         [self addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
         
@@ -250,4 +253,13 @@
     }
 }
 
+- (void)audioSessionInterrupted:(NSNotification *)notification{
+    //TODO: 打断处理(如某个电话来了、电话结束了)
+    NSDictionary * info = notification.userInfo;
+    if ([[info objectForKey:AVAudioSessionInterruptionTypeKey] integerValue] == 1) {
+        [self pause];
+    }else{
+        [self play];
+    }
+}
 @end
