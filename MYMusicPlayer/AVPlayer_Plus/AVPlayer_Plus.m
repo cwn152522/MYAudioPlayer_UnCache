@@ -236,7 +236,6 @@
 
 - (void)applicationWillResignActiveNotification{
     //TODO: 监听应用准备挂起，申请后台播放任务
-    
     __block NSString *key;
     [[[[NSBundle mainBundle] infoDictionary] objectForKey:@"UIBackgroundModes"] enumerateObjectsUsingBlock:^(NSString *obj, NSUInteger idx, BOOL * _Nonnull stop) {
         if([obj isEqualToString:@"audio"]){
