@@ -130,7 +130,7 @@ typedef NS_ENUM(NSInteger, AVPlayerPlayMode) {
  @param player 播放器
  @param music_url 待播放url
  @return 处理过的待播放url，返回不为空，则加载，否则仍加载music_url
- @note 应用场景：提供外界进行本地缓存逻辑处理的时机，若存在本地缓存，则可返回本地文件对应的fileUrl地址进行播放
+ @note 应用场景：提供外界进行本地缓存逻辑处理的时机，若存在本地缓存，则可返回本地文件对应的fileUrl地址进行播放；当然，外界的缓存处理策略就没法采用AVAssetResourceLoader实现了。
  */
 - (NSURL *)player:(AVPlayer_Plus *)player willPlayUrl:(NSURL *)music_url;
 
