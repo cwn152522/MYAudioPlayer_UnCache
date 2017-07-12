@@ -7,7 +7,7 @@
 //
 /*
  说明：后台远程控制(如锁屏下的播放器的事件)由于要求接受事件的必需时controller或者appdelegate，故本封装内没法集成。
-            后台远程控制步骤：
+            后台远程控制步骤(使用avplayer的视图或视图控制器中，完成以下步骤即可)：
             (1)开始接收后台音频播放器远程控制
                  [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
             (2)接收音频源改变监听事件，比如更换了输出源，由耳机播放拔掉耳机后，应该把音乐暂停(参照酷狗应用)
@@ -49,7 +49,32 @@
                          }
                      }
                  }
-
+            (4)更新锁屏播放器播放信息(含歌曲名、专辑名、歌曲图片、进度条、时间信息等)
+                只需在代理方法-player:playerIsPlaying:restTime:progress:中调用如下方法即可
+                 - (void)updateLockedScreenMusic{
+                     //TODO: 锁屏时候的音乐信息更新，建议1秒更新一次
+                     NSLog(@"当前播放的是第%ld首歌", self.player.currentIndex);//获取当前播放的歌曲，然后，取model数据，填充播放信息中心内容
+                     // 播放信息中心
+                     MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
+                     
+                     // 初始化播放信息
+                     NSMutableDictionary *info = [NSMutableDictionary dictionary];
+                     // 专辑名称
+                     info[MPMediaItemPropertyAlbumTitle] = @"啊啊啊";
+                     // 歌手
+                     info[MPMediaItemPropertyArtist] = @"哈哈哈";
+                     // 歌曲名称
+                     info[MPMediaItemPropertyTitle] = @"呵呵呵";
+                     // 设置图片
+                     info[MPMediaItemPropertyArtwork] = [[MPMediaItemArtwork alloc] initWithImage:[UIImage imageNamed:@"Icon-58"]];
+                     // 设置持续时间（歌曲的总时间）
+                     [info setObject:[NSNumber numberWithFloat:CMTimeGetSeconds([self.player.currentItem duration])] forKey:MPMediaItemPropertyPlaybackDuration];
+                     // 设置当前播放进度
+                     [info setObject:[NSNumber numberWithFloat:CMTimeGetSeconds([self.player.currentItem currentTime])] forKey:MPNowPlayingInfoPropertyElapsedPlaybackTime];
+                     
+                     // 切换播放信息
+                     center.nowPlayingInfo = info;
+                 }
  */
 
 
