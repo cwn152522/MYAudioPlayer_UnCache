@@ -24,8 +24,7 @@
 
 - (instancetype)init{
     if(self = [super init]){
-        
-        //监听是否后台播放
+        //允许后台播放
         AVAudioSession *session = [AVAudioSession sharedInstance];
         [session setCategory:AVAudioSessionCategoryPlayback error:nil];
         [session setActive:YES error:nil];//开始监听后台播放
