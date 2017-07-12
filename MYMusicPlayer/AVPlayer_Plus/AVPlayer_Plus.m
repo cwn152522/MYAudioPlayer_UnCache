@@ -24,7 +24,8 @@
 
 - (instancetype)init{
     if(self = [super init]){
-        //允许后台播放
+        
+        //监听是否后台播放
         AVAudioSession *session = [AVAudioSession sharedInstance];
         [session setCategory:AVAudioSessionCategoryPlayback error:nil];
         [session setActive:YES error:nil];//开始监听后台播放
@@ -37,6 +38,9 @@
         
         //增加观测者,播放状态切换时处理
         [self addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:nil];
+        
+        //接收音频源改变监听事件，比如更换了输出源，由耳机播放拔掉耳机后，应该把音乐暂停(参照酷狗应用)
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(routeChange:) name:AVAudioSessionRouteChangeNotification object:nil];
         
         //监听app准备挂起，申请后台任务
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillResignActiveNotification) name:UIApplicationWillResignActiveNotification object:nil];
@@ -228,7 +232,7 @@
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context{
-    //TODO: 播放器状态监听，通知外界
+    //TODO: 监听播放器状态监听，通知外界
     if([keyPath isEqualToString:@"status"]){
         if([self.delegate respondsToSelector:@selector(player:playerSateDidChanged:)]){
             [self.delegate player:self playerSateDidChanged:self.status];
@@ -253,12 +257,27 @@
 }
 
 - (void)audioSessionInterrupted:(NSNotification *)notification{
-    //TODO: 打断处理(如某个电话来了、电话结束了)
+    //TODO: 监听音乐打断处理(如某个电话来了、电话结束了)
     NSDictionary * info = notification.userInfo;
     if ([[info objectForKey:AVAudioSessionInterruptionTypeKey] integerValue] == 1) {
         [self pause];
     }else{
         [self play];
+    }
+}
+
+-(void)routeChange:(NSNotification *)notification{
+    //TODO: 监听音频源改变监听事件，比如更换了输出源，由耳机播放拔掉耳机后，应该把音乐暂停(参照酷狗应用)
+    NSDictionary *dic=notification.userInfo;
+    int changeReason= [dic[AVAudioSessionRouteChangeReasonKey] intValue];
+    //等于AVAudioSessionRouteChangeReasonOldDeviceUnavailable表示旧输出不可用
+    if (changeReason==AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
+        AVAudioSessionRouteDescription *routeDescription=dic[AVAudioSessionRouteChangePreviousRouteKey];
+        AVAudioSessionPortDescription *portDescription= [routeDescription.outputs firstObject];
+        //原设备为耳机说明由耳机拔出来了，则暂停
+        if ([portDescription.portType isEqualToString:@"Headphones"]) {
+            [self pause];
+        }
     }
 }
 @end

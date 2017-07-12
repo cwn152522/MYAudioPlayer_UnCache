@@ -32,9 +32,6 @@
     
     //接收后台音频播放器的远程控制
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
-    
-    //接收音频源改变监听事件，比如更换了输出源，由耳机播放拔掉耳机后，应该把音乐暂停(参照酷狗应用)
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(routeChange:) name:AVAudioSessionRouteChangeNotification object:nil];
     // Do any additional setup after loading the view, typically from a nib.
 }
 
@@ -134,21 +131,6 @@
     
     // 切换播放信息
     center.nowPlayingInfo = info;
-}
-
--(void)routeChange:(NSNotification *)notification{
-    //TODO: 接收音频源改变监听事件，比如更换了输出源，由耳机播放拔掉耳机后，应该把音乐暂停(参照酷狗应用)
-    NSDictionary *dic=notification.userInfo;
-    int changeReason= [dic[AVAudioSessionRouteChangeReasonKey] intValue];
-    //等于AVAudioSessionRouteChangeReasonOldDeviceUnavailable表示旧输出不可用
-    if (changeReason==AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
-        AVAudioSessionRouteDescription *routeDescription=dic[AVAudioSessionRouteChangePreviousRouteKey];
-        AVAudioSessionPortDescription *portDescription= [routeDescription.outputs firstObject];
-        //原设备为耳机说明由耳机拔出来了，则暂停
-        if ([portDescription.portType isEqualToString:@"Headphones"]) {
-            [self.player pause];
-        }
-    }
 }
 
 - (void)remoteControlReceivedWithEvent:(UIEvent *)receivedEvent {

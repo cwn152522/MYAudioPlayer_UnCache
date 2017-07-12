@@ -10,22 +10,7 @@
             后台远程控制步骤(使用avplayer的视图或视图控制器中，完成以下步骤即可)：
             (1)开始接收后台音频播放器远程控制
                  [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
-            (2)接收音频源改变监听事件，比如更换了输出源，由耳机播放拔掉耳机后，应该把音乐暂停(参照酷狗应用)
-                [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(routeChange:) name:AVAudioSessionRouteChangeNotification object:nil];
-                 -(void)routeChange:(NSNotification *)notification{
-                     NSDictionary *dic=notification.userInfo;
-                     int changeReason= [dic[AVAudioSessionRouteChangeReasonKey] intValue];
-                     //等于AVAudioSessionRouteChangeReasonOldDeviceUnavailable表示旧输出不可用
-                     if (changeReason==AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
-                     AVAudioSessionRouteDescription *routeDescription=dic[AVAudioSessionRouteChangePreviousRouteKey];
-                     AVAudioSessionPortDescription *portDescription= [routeDescription.outputs firstObject];
-                     //原设备为耳机说明由耳机拔出来了，则暂停
-                     if ([portDescription.portType isEqualToString:@"Headphones"]) {
-                     [self.player pause];
-                     }
-                     }
-                 }
-             (3)响应远程音乐播放控制消息
+             (2)响应远程音乐播放控制消息
                  - (void)remoteControlReceivedWithEvent:(UIEvent *)receivedEvent {
                      if (receivedEvent.type == UIEventTypeRemoteControl) {
                          switch (receivedEvent.subtype) {
@@ -49,7 +34,7 @@
                          }
                      }
                  }
-            (4)更新锁屏播放器播放信息(含歌曲名、专辑名、歌曲图片、进度条、时间信息等)
+            (3)更新锁屏播放器播放信息(含歌曲名、专辑名、歌曲图片、进度条、时间信息等)
                 只需在代理方法-player:playerIsPlaying:restTime:progress:中调用如下方法即可
                  - (void)updateLockedScreenMusic{
                      //TODO: 锁屏时候的音乐信息更新，建议1秒更新一次
