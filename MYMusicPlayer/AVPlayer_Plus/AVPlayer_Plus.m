@@ -207,6 +207,8 @@
         [self seekToProgress:0.0f];
     }
     
+    [self replaceCurrentItemWithPlayerItem:item];
+    
     [self play];
 }
 
