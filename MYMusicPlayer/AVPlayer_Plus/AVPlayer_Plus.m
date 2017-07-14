@@ -50,9 +50,9 @@
         [self addPeriodicTimeObserverForInterval:CMTimeMake(1, 1) queue:dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0) usingBlock:^(CMTime time) {
             NSTimeInterval current = CMTimeGetSeconds(time);
             _duration = CMTimeGetSeconds(weakSelf.currentItem.duration);
-            float progress = current / CMTimeGetSeconds(weakSelf.currentItem.duration);
-            if(progress > 0){
-                NSTimeInterval rest = CMTimeGetSeconds(weakSelf.currentItem.duration) - current;
+            float progress = current / _duration;
+            if(progress >= 0){
+                NSTimeInterval rest = _duration - current;
                 if([weakSelf.delegate respondsToSelector:@selector(player:playerIsPlaying:restTime:progress:)]){
                     [weakSelf.delegate player:weakSelf playerIsPlaying:current restTime:rest progress:progress];
                 }
@@ -101,6 +101,7 @@
     
     if(itemIndex == self.currentIndex){
         [self play];
+        return;
     }
     
     if(itemIndex < [self.playListArray count]){
@@ -130,32 +131,38 @@
     
     [self pause];
     
+    NSInteger currentIndex = _currentIndex;
     switch (_currentMode) {
         case AVPlayerPlayModeOnce:
         case AVPlayerPlayModeSequenceList:{//仅播放一次或顺序播放
-            _currentIndex --;
-            _currentIndex = _currentIndex == -1 ? ([_playListArray count] - 1) : _currentIndex;
+            currentIndex --;
+            currentIndex = currentIndex == -1 ? ([_playListArray count] - 1) : currentIndex;
         }
             break;
         case AVPlayerPlayModeSingleLoop:{//单曲循环
         }
             break;
         case AVPlayerPlayModeRandomList:{//随机播放
-            _currentIndex = [self getRandomItem];
+            currentIndex = [self getRandomItem];
         }
             break;
         default:
             break;
     }
     
-    NSURL *url = _playListArray[_currentIndex];
-    if([self.delegate respondsToSelector:@selector(player:willPlayUrl:)]){
-        NSURL *url1 = [self.delegate player:self willPlayUrl:url];
-        url = url1 != nil ? url1 : url;
-    }
+    if(_currentIndex != currentIndex){//下一首不是当前歌曲
+        _currentIndex = currentIndex;
+        NSURL *url = _playListArray[_currentIndex];
+        if([self.delegate respondsToSelector:@selector(player:willPlayUrl:)]){
+            NSURL *url1 = [self.delegate player:self willPlayUrl:url];
+            url = url1 != nil ? url1 : url;
+        }
 
-    AVPlayerItem *item = [AVPlayerItem playerItemWithURL:url];
-    [self replaceCurrentItemWithPlayerItem:item];
+        AVPlayerItem *item = [AVPlayerItem playerItemWithURL:url];
+        [self replaceCurrentItemWithPlayerItem:item];
+    }else{//下一首还是当前首
+        [self seekToProgress:0.0f];
+    }
     
     [self play];
 }
@@ -167,32 +174,38 @@
         
     [self pause];
     
+    NSInteger currentIndex = _currentIndex;
     switch (_currentMode) {
         case AVPlayerPlayModeOnce:
         case AVPlayerPlayModeSequenceList:{//仅播放一次或顺序播放
-            _currentIndex ++;
-            _currentIndex = _currentIndex == [_playListArray count] ? 0 : _currentIndex;
+            currentIndex ++;
+            currentIndex = currentIndex == [_playListArray count] ? 0 : currentIndex;
         }
             break;
         case AVPlayerPlayModeSingleLoop:{//单曲循环
         }
             break;
         case AVPlayerPlayModeRandomList:{//随机播放
-            _currentIndex = [self getRandomItem];
+            currentIndex = [self getRandomItem];
         }
             break;
         default:
             break;
     }
     
-    NSURL *url = _playListArray[_currentIndex];
-    if([self.delegate respondsToSelector:@selector(player:willPlayUrl:)]){
-        NSURL *url1 = [self.delegate player:self willPlayUrl:url];
-        url = url1 != nil ? url1 : url;
+    if(_currentIndex != currentIndex){
+        _currentIndex = currentIndex;
+        NSURL *url = _playListArray[_currentIndex];
+        if([self.delegate respondsToSelector:@selector(player:willPlayUrl:)]){
+            NSURL *url1 = [self.delegate player:self willPlayUrl:url];
+            url = url1 != nil ? url1 : url;
+        }
+        
+        AVPlayerItem *item = [AVPlayerItem playerItemWithURL:url];
+        [self replaceCurrentItemWithPlayerItem:item];
+    }else{
+        [self seekToProgress:0.0f];
     }
-    
-    AVPlayerItem *item = [AVPlayerItem playerItemWithURL:url];
-    [self replaceCurrentItemWithPlayerItem:item];
     
     [self play];
 }
@@ -225,8 +238,9 @@
     //TODO: 从播放列表获取一个随机音乐下标
     NSInteger random = arc4random() % [_playListArray count];
     if(_currentIndex == random)
-        if([_playListArray count] > 1)
-            [self getRandomItem];
+        if([_playListArray count] > 1){
+            return [self getRandomItem];
+        }
     
     return random;
 }
