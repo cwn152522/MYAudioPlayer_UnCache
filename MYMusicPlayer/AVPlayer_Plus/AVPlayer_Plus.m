@@ -101,7 +101,6 @@
     
     if(itemIndex == self.currentIndex){
         [self play];
-        return;
     }
     
     if(itemIndex < [self.playListArray count]){
@@ -150,17 +149,11 @@
             break;
     }
     
-    if(_currentIndex != currentIndex){//下一首不是当前歌曲
+    if(currentIndex != _currentIndex){
         _currentIndex = currentIndex;
-        NSURL *url = _playListArray[_currentIndex];
-        if([self.delegate respondsToSelector:@selector(player:willPlayUrl:)]){
-            NSURL *url1 = [self.delegate player:self willPlayUrl:url];
-            url = url1 != nil ? url1 : url;
-        }
-
-        AVPlayerItem *item = [AVPlayerItem playerItemWithURL:url];
+        __block AVPlayerItem *item = [self getCurrentPlayerItem];//获取当前播放音乐
         [self replaceCurrentItemWithPlayerItem:item];
-    }else{//下一首还是当前首
+    }else{
         [self seekToProgress:0.0f];
     }
     
@@ -193,21 +186,13 @@
             break;
     }
     
-    if(_currentIndex != currentIndex){
+    if(currentIndex != _currentIndex){
         _currentIndex = currentIndex;
-        NSURL *url = _playListArray[_currentIndex];
-        if([self.delegate respondsToSelector:@selector(player:willPlayUrl:)]){
-            NSURL *url1 = [self.delegate player:self willPlayUrl:url];
-            url = url1 != nil ? url1 : url;
-        }
-        
-        AVPlayerItem *item = [AVPlayerItem playerItemWithURL:url];
+        __block AVPlayerItem *item = [self getCurrentPlayerItem];//获取当前播放音乐
         [self replaceCurrentItemWithPlayerItem:item];
     }else{
         [self seekToProgress:0.0f];
     }
-    
-    [self replaceCurrentItemWithPlayerItem:item];
     
     [self play];
 }
@@ -318,3 +303,4 @@
 }
 
 @end
+

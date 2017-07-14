@@ -115,7 +115,7 @@ typedef NS_ENUM(NSInteger, AVPlayerPlayMode) {
  @param player 播放器
  @param music_url 待播放url
  @param response 回调回来的asset不为空则以asset方式进行加载网络音乐；如果返回的是fileUrl则以url方式进行加载本地音乐(bundle或缓存文件)
- @note 应用场景：提供外界进行本地缓存逻辑处理的时机
+ @note 应用场景：提供外界进行本地缓存逻辑处理的时机，
  */
 - (void)player:(AVPlayer_Plus *)player willPlayUrl:(NSURL *)music_url withResponse:(void(^)(AVURLAsset *asset, NSURL *fileUrl))response;
 
