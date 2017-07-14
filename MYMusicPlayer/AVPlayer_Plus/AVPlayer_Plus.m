@@ -54,7 +54,9 @@
             if(progress >= 0){
                 NSTimeInterval rest = _duration - current;
                 if([weakSelf.delegate respondsToSelector:@selector(player:playerIsPlaying:restTime:progress:)]){
-                    [weakSelf.delegate player:weakSelf playerIsPlaying:current restTime:rest progress:progress];
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [weakSelf.delegate player:weakSelf playerIsPlaying:current restTime:rest progress:progress];
+                    });
                 }
             }
         }];
@@ -69,10 +71,8 @@
     
     _currentIndex = 0;
     
-    if([playListArray count] > 0){
-        AVPlayerItem *item = [AVPlayerItem playerItemWithURL:playListArray[0]];
-        [self replaceCurrentItemWithPlayerItem:item];
-    }
+    __block AVPlayerItem *item = [self getCurrentPlayerItem];//获取当前播放音乐
+    [self replaceCurrentItemWithPlayerItem:item];
 }
 
 
@@ -171,7 +171,7 @@
     //TODO: 下一首
     if(self.playListArray == 0)
         return;
-        
+    
     [self pause];
     
     NSInteger currentIndex = _currentIndex;
@@ -214,10 +214,10 @@
     //TODO: 音乐播放结束，下一首
     if(_currentMode == AVPlayerPlayModeOnce){//当前模式为只播一次，所以音乐停止播放
         [self seekToProgress:0.0f];//不写，再进行播放，又会走播放结束，未解～
-            if([_delegate respondsToSelector:@selector(player:playingSateDidChanged:)]){
-                _playing = NO;
-                [_delegate player:self playingSateDidChanged:NO];
-            }
+        if([_delegate respondsToSelector:@selector(player:playingSateDidChanged:)]){
+            _playing = NO;
+            [_delegate player:self playingSateDidChanged:NO];
+        }
         return;
     }
     
@@ -294,4 +294,25 @@
         }
     }
 }
+
+- (AVPlayerItem *)getCurrentPlayerItem{
+    NSURL *url = _playListArray[_currentIndex];
+    __block AVPlayerItem *item;
+    if([self.delegate respondsToSelector:@selector(player:willPlayUrl:withResponse:)]){
+        [self.delegate player:self willPlayUrl:url withResponse:^(AVURLAsset *asset, NSURL *fileUrl) {
+            if(asset == nil && fileUrl == nil){
+                item = [AVPlayerItem playerItemWithURL:url];
+            }else if(asset != nil){
+                item = [AVPlayerItem playerItemWithAsset:asset];
+            }else{
+                item = [AVPlayerItem playerItemWithURL:fileUrl];
+            }
+        }];
+    }else{
+        item = [AVPlayerItem playerItemWithURL:url];
+    }
+    
+    return item;
+}
+
 @end
