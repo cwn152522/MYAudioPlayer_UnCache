@@ -105,6 +105,8 @@
     
     if(itemIndex < [self.playListArray count]){
         _currentIndex = itemIndex;
+        __block AVPlayerItem *item = [self getCurrentPlayerItem];//获取当前播放音乐
+        [self replaceCurrentItemWithPlayerItem:item];
         [self play];
     }
 }
